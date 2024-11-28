@@ -9,7 +9,7 @@ from sampler.openrouter_sampler import OpenRouterSampler
 from simpleqa_eval import SimpleQAEval
 import common
 
-def get_sampler(provider: str, model: str, config: dict):
+def get_sampler(provider: str, model: str, config: dict, is_grader: bool = False):
     if provider == "openai":
         return OpenAISampler(
             model=model,
@@ -27,26 +27,31 @@ def main():
     parser.add_argument("--config", default="config.yaml", help="Path to config file")
     parser.add_argument("--provider", default="openai", help="Provider to use (openai/openrouter)")
     parser.add_argument("--model", help="Override model from config")
+    parser.add_argument("--grader-provider", default="openai", help="Provider for grader (openai/openrouter)")
+    parser.add_argument("--grader-model", help="Override grader model from config")
     parser.add_argument("--examples", type=int, default=10)
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
 
     config = load_config(args.config)
+    
+    # Get provider configs
     provider_config = config["providers"][args.provider]
+    grader_provider_config = config["providers"][args.grader_provider]
     
     # Get model names
     test_model = args.model or provider_config["models"]["default"]
+    grader_model = args.grader_model or grader_provider_config["models"]["grader"]
     
-    # Always use gpt-4o as validator
-    grader = OpenAISampler(model="gpt-4o")
-
     print(f"\nUsing models:")
     print(f"Provider: {args.provider}")
     print(f"Test model: {test_model}")
-    print(f"Grader model: gpt-4o")
+    print(f"Grader provider: {args.grader_provider}")
+    print(f"Grader model: {grader_model}")
     
-    # Initialize test model
+    # Initialize test model and grader
     model = get_sampler(args.provider, test_model, config)
+    grader = get_sampler(args.grader_provider, grader_model, config, is_grader=True)
     
     # Run evaluation
     eval_obj = SimpleQAEval(
@@ -67,7 +72,8 @@ def main():
     results = {
         "provider": args.provider,
         "test_model": test_model,
-        "grader_model": "gpt-4o",
+        "grader_provider": args.grader_provider,
+        "grader_model": grader_model,
         "num_examples": args.examples,
         "timestamp": timestamp,
         "metrics": result.metrics,

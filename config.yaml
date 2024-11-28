@@ -12,7 +12,8 @@ providers:
   openrouter:
     base_url: https://openrouter.ai/api/v1
     models:
-      default: qwen/qwen1.5-72b
+      default: meta-llama/llama-3.1-8b-instruct
+      grader: meta-llama/llama-3.1-8b-instruct
 
 prompts:
-  active: "custom"  # Может быть: "none", "confidence", "custom"
+  active: "custom"  # Может быть: "none", "confidence", "custom" задается в prompts/templates.py
