@@ -36,3 +36,11 @@ results/
 .env
 simple_qa_test_set.csv
 
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+results/
+simple_qa_test_set.csv
+.vscode/
+.idea/

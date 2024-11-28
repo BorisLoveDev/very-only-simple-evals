@@ -3,18 +3,20 @@ from openai import OpenAI
 from .base_sampler import BaseSampler
 from eval_types import MessageList
 
-class OpenAISampler(BaseSampler):
+class OpenRouterSampler(BaseSampler):
     def __init__(
         self,
         model: str,
         api_key: str = None,
-        system_message: str = None,
+        base_url: str = "https://openrouter.ai/api/v1",
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
-        self.client = OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
+        self.client = OpenAI(
+            api_key=api_key or os.getenv("OPENROUTER_API_KEY"),
+            base_url=base_url,
+        )
         self.model = model
-        self.system_message = system_message
         self.temperature = temperature
         self.max_tokens = max_tokens
 
@@ -22,9 +24,6 @@ class OpenAISampler(BaseSampler):
         return {"role": str(role), "content": content}
 
     def __call__(self, message_list: MessageList) -> str:
-        if self.system_message:
-            message_list = [self._pack_message("system", self.system_message)] + message_list
-        
         response = self.client.chat.completions.create(
             model=self.model,
             messages=message_list,
