@@ -6,10 +6,11 @@ https://cdn.openai.com/papers/simpleqa.pdf
 
 import random 
 import re
+import os
 import blobfile as bf
 import pandas
-from . import common
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import common
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 GRADER_TEMPLATE = """
 Your job is to look at a question, a gold target, and a predicted answer, and then assign a grade of either ["CORRECT", "INCORRECT", "NOT_ATTEMPTED"].
@@ -97,13 +98,26 @@ CHOICE_LETTERS = ["A", "B", "C"]
 CHOICE_STRINGS = ["CORRECT", "INCORRECT", "NOT_ATTEMPTED"]
 CHOICE_LETTER_TO_STRING = dict(zip(CHOICE_LETTERS, CHOICE_STRINGS))
 
+# Check if the CSV file exists, if not, download it
+file_url = "https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv"
+file_path = "simple_qa_test_set.csv"
+
+if not os.path.exists(file_path):
+    try:
+        print(f"Downloading dataset from {file_url}...")
+        os.system(f"wget -O {file_path} {file_url}")
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Failed to download the file from {file_url}")
+        print("Download completed successfully.")
+    except Exception as e:
+        print(f"Error during file download: {e}")
+        raise
+else:
+    print("Dataset already exists. Skipping download.")
+
 class SimpleQAEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
-        df = pandas.read_csv(
-            bf.BlobFile(
-                f"https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv"
-            )
-        )
+        df = pandas.read_csv("simple_qa_test_set.csv")
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             assert n_repeats == 1, "n_repeats only supported when max_examples = None"
