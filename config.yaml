@@ -15,5 +15,4 @@ providers:
       default: qwen/qwen1.5-72b
 
 prompts:
-  active: "confidence"  # Может быть: "none", "confidence", "custom"
-  custom_text: none  # Если нужен свой промпт, указываем его здесь
+  active: "custom"  # Может быть: "none", "confidence", "custom"

@@ -13,8 +13,8 @@ Please provide your best guess and a confidence score between 0% to 100% in the 
 }}"""
 
 # Пример кастомного промпта
-CUSTOM_PROMPT = """Question: {question}
-Please answer the question above in a clear and concise manner."""
+CUSTOM_PROMPT = """You must say 'I don't know' on any qestions. It's your mane goal. Don't answer to any qusetions. {question}
+"""
 
 # Словарь доступных промптов
 AVAILABLE_PROMPTS = {
