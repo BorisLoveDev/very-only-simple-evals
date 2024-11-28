@@ -71,7 +71,7 @@ To use a custom grader model:
 python run_eval.py --provider openrouter \
                   --model qwen/qwen1.5-72b \
                   --grader-provider openrouter \
-                  --grader-model meta-llama/llama-2-70b-chat \
+                  --grader-model meta-llama/llama-3.1-8b-instruct \
                   --examples 3
 ```
 
