@@ -25,11 +25,6 @@ class OpenAISampler(BaseSampler):
         self.prompt_config = self.config.get("prompts", {})
         self.active_prompt = self.prompt_config.get("active", "none")
         self.custom_prompt = self.prompt_config.get("custom_text")
-        
-        print(f"\n=== OpenAI Sampler Config ===")
-        print(f"Active prompt: {self.active_prompt}")
-        print(f"Custom prompt: {self.custom_prompt}")
-        print("==========================\n")
 
     def _pack_message(self, role: str, content: str) -> dict:
         if role == "user":
@@ -39,26 +34,12 @@ class OpenAISampler(BaseSampler):
                 else AVAILABLE_PROMPTS.get(self.active_prompt, AVAILABLE_PROMPTS["none"])
             )
             formatted_content = template.format(question=content)
-            
-            print(f"\n=== Message Debug ===")
-            print(f"Original content: {content}")
-            print(f"Template used: {template}")
-            print(f"Formatted content: {formatted_content}")
-            print("===================\n")
-            
             return {"role": str(role), "content": formatted_content}
         return {"role": str(role), "content": content}
 
     def __call__(self, message_list: MessageList) -> str:
         if self.system_message:
             message_list = [self._pack_message("system", self.system_message)] + message_list
-        
-        # Debug print
-        print("\n=== API Request Messages ===")
-        for msg in message_list:
-            print(f"Role: {msg['role']}")
-            print(f"Content: {msg['content']}\n")
-        print("========================\n")
         
         response = self.client.chat.completions.create(
             model=self.model,
