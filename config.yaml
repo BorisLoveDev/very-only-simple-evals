@@ -16,4 +16,5 @@ providers:
       grader: meta-llama/llama-3.1-8b-instruct
 
 prompts:
-  active: "custom"  # Может быть: "none", "confidence", "custom" задается в prompts/templates.py
+  active: "confidence"  # Может быть: "none", "confidence", "custom" задается в prompts/templates.py
+  custom_text: null  # Your custom prompt template if you don't want use null

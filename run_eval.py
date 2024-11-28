@@ -68,26 +68,37 @@ def main():
     # Generate timestamp for unique filenames
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Save results
-    results = {
-        "provider": args.provider,
-        "test_model": test_model,
-        "grader_provider": args.grader_provider,
-        "grader_model": grader_model,
-        "num_examples": args.examples,
-        "timestamp": timestamp,
-        "metrics": result.metrics,
-        "score": result.score
+    # Prepare model configuration info
+    model_config = {
+        "test": {
+            "provider": args.provider,
+            "model": test_model
+        },
+        "grader": {
+            "provider": args.grader_provider,
+            "model": grader_model
+        }
     }
     
-    # Save JSON results
+    # Save results with updated model information
+    results = {
+        "timestamp": timestamp,
+        "models": model_config,
+        "evaluation": {
+            "num_examples": args.examples,
+            "metrics": result.metrics,
+            "score": result.score
+        }
+    }
+    
+    # Save JSON results with pretty printing
     json_path = results_dir / f"results_{timestamp}.json"
-    with open(json_path, "w") as f:
-        json.dump(results, f, indent=2)
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
         
     # Save HTML report
     html_path = results_dir / f"report_{timestamp}.html"
-    with open(html_path, "w") as f:
+    with open(html_path, "w", encoding="utf-8") as f:
         f.write(common.make_report(result))
 
     # Print results
@@ -104,6 +115,7 @@ def main():
     print(f"\nResults saved to:")
     print(f"JSON: {json_path}")
     print(f"HTML Report: {html_path}")
+
 
 if __name__ == "__main__":
     main()
