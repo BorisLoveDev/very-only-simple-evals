@@ -3,6 +3,8 @@ import json
 import requests
 from .base_sampler import BaseSampler
 from eval_types import MessageList
+from prompts.templates import AVAILABLE_PROMPTS
+from utils.config import load_config
 
 class OpenRouterSampler(BaseSampler):
     def __init__(
@@ -14,12 +16,23 @@ class OpenRouterSampler(BaseSampler):
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.base_url = base_url
         self.model = model
-        
-        # Optional headers defaults
         self.site_url = os.getenv("YOUR_SITE_URL", "http://localhost:3000")
         self.app_name = os.getenv("YOUR_APP_NAME", "SimpleQA-Eval")
+        
+        # Загружаем конфигурацию промптов
+        self.config = load_config()
+        self.prompt_config = self.config.get("prompts", {})
+        self.active_prompt = self.prompt_config.get("active", "none")
+        self.custom_prompt = self.prompt_config.get("custom_text")
 
     def _pack_message(self, role: str, content: str) -> dict:
+        if role == "user":
+            # Применяем активный промпт
+            template = (
+                self.custom_prompt if self.active_prompt == "custom" and self.custom_prompt
+                else AVAILABLE_PROMPTS.get(self.active_prompt, AVAILABLE_PROMPTS["none"])
+            )
+            content = template.format(question=content)
         return {"role": str(role), "content": content}
 
     def __call__(self, message_list: MessageList) -> str:
@@ -33,7 +46,7 @@ class OpenRouterSampler(BaseSampler):
             "model": self.model,
             "messages": message_list,
             "top_p": 1,
-            "temperature": 0.65,
+            "temperature": 1,
             "frequency_penalty": 0,
             "presence_penalty": 0,
             "repetition_penalty": 1,
@@ -51,10 +64,18 @@ class OpenRouterSampler(BaseSampler):
                 print(f"Error response: {response.status_code} - {response.text}")
                 raise Exception(f"API request failed: {response.text}")
 
-            return response.json()["choices"][0]["message"]["content"]
+            response_text = response.json()["choices"][0]["message"]["content"]
+            
+            # Если используется промпт с confidence, пытаемся извлечь ответ из JSON
+            if self.active_prompt == "confidence":
+                try:
+                    response_json = json.loads(response_text)
+                    return response_json.get("answer", response_text)
+                except:
+                    return response_text
+            
+            return response_text
             
         except Exception as e:
             print(f"Error calling OpenRouter API: {str(e)}")
-            print(f"Request headers: {headers}")
-            print(f"Request payload: {json.dumps(payload, indent=2)}")
             raise

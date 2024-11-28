@@ -2,7 +2,7 @@ providers:
   openai:
     models:
       default: gpt-4o-mini
-      grader: gpt-4o
+      grader: gpt-4o-mini
 
   anthropic:
     models:
@@ -13,3 +13,7 @@ providers:
     base_url: https://openrouter.ai/api/v1
     models:
       default: qwen/qwen1.5-72b
+
+prompts:
+  active: "confidence"  # Может быть: "none", "confidence", "custom"
+  custom_text: null  # Если нужен свой промпт, указываем его здесь
